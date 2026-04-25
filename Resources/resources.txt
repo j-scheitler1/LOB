@@ -1,0 +1,667 @@
+Web Sites
+1. https://web.archive.org/web/20110219163448/http://howtohft.wordpress.com/2011/02/15/how-to-build-a-fast-limit-order-book/
+2. https://web.archive.org/web/20110219163418/http://howtohft.wordpress.com/2011/02/15/building-a-trading-system-general-considerations/
+3. https://medium.com/@simomenaldo/limit-order-book-structure-2aed9971e998
+
+Transcript From YouTube Video
+    Hello everybody and welcome back to the
+    channel. Today we'll be racing against
+    my bowels because I have about 15
+    minutes until I have explosive diarrhea.
+    So, let's get this video underway. Uh,
+    today I will be doing the low-level
+    design of an order book. Uh, if you
+    don't know what an order book is, I'm
+    going to teach you. And on the event
+    that this happens to turn you into a
+    Jordan Belffort type, please do send
+    some help my way. I'll greatly
+    appreciate it. And for legal reasons,
+    that was a joke. Okay, let's get into
+    this. All righty. So let's go over what
+    a limit order book is. Uh we'll go over
+    some design decisions that we might make
+    when implementing this. Uh it is more of
+    an algorithmic problem maybe more than
+    anything, but I don't really think there
+    are too many good videos actually
+    covering how to do kind of the class
+    design that you would want for an order
+    book. And so I'm going to try and go
+    into that and uh explore it with a
+    little bit of depth. Okay. So what is a
+    limit order book? Well, let's imagine
+    that we're only considering one stock
+    for now because in reality there's going
+    to be different order books for every
+    single stock. But the general gist of
+    this is that an order book basically
+    keeps track of all the open orders. When
+    you're trying to buy or sell a stock,
+    sometimes there's not somebody else who
+    wants to buy or sell that stock and take
+    the other side of the trade. Uh when
+    that happens, your basically unfilled
+    order goes into the order book. And
+    there are two sides of the order book.
+    There's the ask side and the bid side.
+    The ask side basically represents all of
+    the open selling orders. Meaning, let's
+    say I had 100 shares of an Apple stock
+    and I wanted to sell them. That would go
+    in the ask side of the order book until
+    that half of the order was filled. And
+    then same with bidding. Let's say I
+    wanted to buy 50 shares of Google. Well,
+    then that would go in basically the bid
+    side of the book until someone else
+    basically went ahead and sold me 50
+    shares. So like I've said on the slide
+    here, we have basically the prices and
+    the corresponding volumes which is just
+    the number of shares that people who
+    have not yet had their order filled want
+    to buy and sell of a stock. And there
+    are a few rules to this order book
+    basically for you know when new
+    potential trades are coming in how they
+    would actually go ahead and get filled.
+    So, as you can see, we have our
+    basically bid and ask side of the book.
+    And a trade is going to be made if the
+    highest bid is greater than or equal to
+    the lowest ask, meaning that the spread
+    has been crossed. So, the spread is
+    basically the term for the difference
+    between the lowest ask and the highest
+    bid. And so, when they cross, it means
+    that there's someone who's actually
+    willing to pay uh greater than or equal
+    to the amount that someone is willing to
+    sell at. And so a trade is going to be
+    initiated and that volume is going to be
+    removed from the order book. Now what if
+    it's the case that one side was in the
+    order book already and the other side
+    basically initiates the trade. Well, the
+    price that that order is going to uh
+    basically happen at is the price of the
+    order that was already in the book. So
+    keep that in mind. That's one rule we
+    have to talk about. Um, another one is
+    actually going to be the fact that
+    basically, um, if orders are all going
+    to be, you know, basically if an order
+    comes in that crosses the spread and
+    there are multiple orders on the other
+    side or there are multiple basically
+    open orders on the other side that could
+    fail an order with that, you're going to
+    ultimately uh perform the trade with the
+    open order that came in first. So, we're
+    going to be doing those in chronological
+    order. it implies we'll have to be using
+    some sort of Q or something along those
+    lines down the line based on a
+    timestamp. Okay, so let's move onwards.
+    You can read the slide for you know more
+    details about the rules but I hope that
+    explains things. Okay, so let's think
+    about our order book interface. So let's
+    we'll we'll first do a basic order book
+    and then uh towards the end of the video
+    I'll explain some possible expansions to
+    the problem and touch upon those a
+    little bit. But this is going to be our
+    main functionality that we care about
+    the most. So the interface that I wanted
+    to define and the reason I'm doing this
+    as an interface is because there are
+    multiple possible implementations of our
+    order book is going to have three main
+    methods. We have one to place an order
+    and so placing an order is basically
+    going to do the following. It's going to
+    try and fill that order meaning it's
+    going to try and find an open order in
+    the order book that can be combined with
+    it to make a trade. or if you can't make
+    a series of trades due to that order
+    that was just placed, then you're going
+    to go ahead and place that in the order
+    book and maybe down the line that trade
+    will actually go down. Um, we also have
+    this option to cancel an order. Like I
+    said, sometimes orders are going to be
+    placed but not actually filled, and
+    they'll go in the open order book.
+    Cancelelling that order will make sure
+    that you won't actually be able to fill
+    that order in the future if it has yet
+    to be filled. If it has been filled,
+    that's just a no op. And then finally,
+    we also want to be able to get the
+    volume at a price point for a given side
+    of the trade. So let's say I want to see
+    all right, how many people are currently
+    selling the stock Apple for $50 or not
+    how many people, but rather how many
+    shares are being sold at the price of
+    $50. We could then go ahead and easily
+    get this uh by calling our get volume at
+    price method. Okay, so let's also uh
+    obviously we need to basically
+    encapsulate the state of an actual
+    order. Um, and so I went ahead and
+    listed out some fields that would be
+    useful in something like an order class.
+    Um, having an order class is useful for
+    a variety of reasons. Technically, the
+    state isn't going to be changing too
+    much. So, it's possible that we don't
+    need a class. We could maybe use some
+    different data structure like a
+    dictionary to represent this, but at the
+    end of the day, being able to kind of
+    abstract this away in a class is good
+    for, you know, putting it in other data
+    structures. For example, something like
+    a Q or a linked list or a heap or
+    anything along those lines. It's nice to
+    have kind of a node structure that we
+    can abstract an order away with. So,
+    we're going to have an order ID. We're
+    going to have a time stamp. We're going
+    to have a side that is part of our buy
+    or sell enum. So, I'm just going to
+    assume side is buy or sell. Uh we're
+    also going to have a price, which is
+    going to be a double or a float. Uh we
+    will have a volume, which is the number
+    of shares that's either being, you know,
+    sold or bought. And then also a client
+    name. That's just going to be useful for
+    when we're actually printing out a trade
+    that has executed. And again, you know,
+    obviously I've made these all private.
+    So I'm assuming that in an actual class
+    you would have public getters and
+    setters uh just for the purposes of, you
+    know, kind of making sure that you can't
+    actually access the instance variables
+    of this class.
+    Okay, so let's go ahead and think about
+    some sort of data structures for our
+    limit order book because this is
+    ultimately going to be a pretty complex
+    problem and there's not only one way
+    that you can do this, but I'm going to
+    touch upon one possible implementation.
+    And if you guys have any other ideas in
+    the comments, feel free to go ahead and
+    comment those. I'd be interested to see
+    what you guys can come up with as well.
+    But as far as I'm aware, this is one of
+    the more common ways of implementing it.
+    So basically, we know when an order
+    comes in, let's imagine that we're
+    submitting a buy order, right? So I want
+    to buy 50 shares of Google. The first
+    thing that we're going to do is go ahead
+    and look at the lowest price of the sell
+    side of the limit book, right? Because I
+    want to see what people are willing to
+    sell Google for. If I'm willing to buy
+    Google shares at a price that's greater
+    than or equal to that lowest sell price,
+    then we're going to execute a trade. And
+    if I wasn't able to buy all the shares
+    that I wanted, I'm going to keep
+    checking the sell limit order book in
+    order of the lowest prices to see if I
+    can make even more trades. So,
+    obviously, we're going to have some sort
+    of while loop in our logic. And keep in
+    mind as well that I basically just told
+    you guys the way that I'm looking at uh
+    the limit order book in terms of who I'm
+    going to actually execute my trade with
+    is in terms of the price point. Right? I
+    am prioritizing uh open orders that have
+    the lowest price. So what would be
+    really good for this would be a priority
+    queue which is often implemented by a
+    min heap. uh so it would be really
+    useful to kind of represent the sell
+    side of the order book with a min heap
+    so that that way I can quickly see
+    what's the lowest price that I can buy
+    shares at and similarly uh you can also
+    implement the buy side of the order book
+    with a max heap so that you can quickly
+    see what is the highest price that
+    someone's willing to buy shares of a
+    stock at. And so now we basically have
+    this structure of two heaps. We have a
+    min heap for our sell side. We have a
+    max heap for our buy side. And in
+    addition, uh, it actually gets a little
+    bit more complicated. But keep in mind,
+    and sorry there's a typo on the slide. I
+    said n login inserts and pops. It's
+    actually login where n is the number of
+    nodes in the heap. But what actually are
+    our nodes in the heap? It's not actually
+    going to be so simple as to just say
+    that, hey, we have just a bunch of order
+    nodes in our heaps, right? because we
+    actually said to ourselves, hey, we know
+    that um we basically have all these
+    orders, but there can be many orders at
+    the same price point, right? I might
+    want to buy 50 shares of Apple, and
+    then, you know, my friend also might
+    want to buy 50 shares of Apple. And so,
+    we would go in the heap in the same
+    place. But I've already said that, you
+    know, if there are two people willing to
+    buy shares at the same price, the one
+    who gets priority is the one that
+    actually submitted their order earlier,
+    meaning they have an earlier time stamp.
+    So what we could actually do, we have a
+    couple options here. Uh, one option is
+    to just go ahead and make our heaps
+    based on both the price and the time
+    stamp, but it is actually a little bit
+    algorithmically faster if we were to use
+    a queue. The reasoning for this being
+    that now we're not adding a bunch of
+    extra nodes to our heap, which uh goes
+    around in kind of logarithmic time, but
+    rather we can have um basically a heap
+    of Q's where the Q's are representing
+    just one price level for an open order.
+    And then within those cues we have
+    actually the basically the order nodes
+    themselves uh in the order that they
+    were submitted. Right? So it means that
+    pulling from the beginning of the queue
+    is going to show you the earliest order
+    and then we're going to get the things
+    that we want. Right? So now we finally
+    satisfied our requirement of being able
+    to look through those heaps in the
+    proper order and also if there's a
+    tiebreaker we can settle it using that
+    time stamp field.
+    Okay. So now we have basically these two
+    heaps right? Right? We have our max heap
+    and our min heap. And each of those
+    heaps is made up of a bunch of different
+    cues and those cues contain orders.
+    Right? So this is already getting pretty
+    complicated and I understand that and I
+    empathize with you there, but it's only
+    getting worse because we mentioned that
+    we need volume. So volume is basically
+    saying what is the open amount of shares
+    that uh people either want to buy or
+    want to sell at a given price. And so
+    right now we know that all of the orders
+    at a given price are represented by
+    basically being part of a que. And
+    that's all good and well. However, uh
+    it's not very efficient time-wise. And
+    we know that we want to make our
+    algorithmic complexity as low as
+    possible during the course of this
+    problem because in an actual market
+    exchange or a stock exchange, it's super
+    important to make things super fast or
+    else they're going to be inefficiencies
+    that people can take advantage of. So we
+    want our volume to basically be running
+    as fast as possible. And right now our
+    volume or at least calculating it would
+    be an O of N. The reason for this being
+    that we have to iterate through a Q at a
+    given price point and add up the sums of
+    the number of shares that each order
+    wants. So instead what we can actually
+    do is as opposed to um kind of lazily
+    figuring out what the volume is, we can
+    actually premputee it and we can do this
+    by maintaining a hashmap. So the hashmap
+    is going to basically take in a tupil as
+    a key where the tupil is both the price
+    that we care about and also the side.
+    So, buying or selling. And every single
+    time that we add an order to our limit
+    order book, we can go ahead and
+    increment the volume available for that
+    order's price inside in the hashmap. And
+    if we were to ever remove an order from
+    the limit order book because either it
+    was filled or it was canceled, we can go
+    ahead and remove the corresponding
+    volume amount in our hashmap. So, that's
+    just an extra thing to keep keep up
+    with. Okay.
+    Next, we have cancellations.
+    cancellations is probably where this
+    problem gets, I would say, the most
+    challenging in terms of actually going
+    ahead and thinking through the
+    trade-offs that we need to make. And
+    there are a couple of possible ways that
+    we can cancel an order. We can kind of
+    actively do it or we can lazily do it.
+    So the active way that we can do this is
+    um we basically go ahead and take the
+    node representing an order and we simply
+    remove it from the queue that it's a
+    part of and effectively remove it from
+    the heap. So we're now no longer ever
+    going to consider it for filling future
+    orders. So, uh, this is really good in
+    the sense that, um, it means that there
+    are going to potentially be fewer things
+    in the heap, right? Uh, if we emptied an
+    entire queue out because all of the
+    nodes are canceled in it. Now, we can go
+    ahead and remove that Q from our heap.
+    And as a result, even though all the
+    operations in the heap are log n, n is
+    going to be smaller. So, that is going
+    to give us a time complexity advantage
+    for future operations. But basically by
+    actively removing things from the heap,
+    it also means that uh we're incurring
+    extra time complexity whenever we do a
+    cancellation. So the first thing is that
+    we're going to be removing a node from a
+    queue, right? Because we have a heap of
+    Q's of order objects. And so we're
+    removing an order object from that Q. Uh
+    we know that removing arbitrary nodes
+    from Q's is actually an O of N time
+    complexity. However, there are
+    optimizations that we can make in order
+    to improve this. For example, instead of
+    just using a Q with a linked list
+    implementation, we can implement our Q
+    via a doubly linked list with a hashmap,
+    which I've covered plenty in prior
+    videos. And by doing so, uh, we can
+    basically use our hashmap in order to
+    get the location of the node and then
+    remove it in O of one time. So that does
+    save some time complexity there, but it
+    still doesn't stop the fact that if we
+    ultimately have to remove the
+    corresponding que from the heap because
+    you know there's no more order objects
+    in that queue, meaning all the orders at
+    that price point are no longer
+    available. Now we have to remove that Q
+    from the heap and that is going to be a
+    log and removal assuming that we know
+    the location of the Q in the heap, which
+    is only going to happen if we have a
+    hashmap pointing to it. So again, this
+    is, you know, getting very
+    algorithmically complex at this point.
+    The other option that we actually have
+    uh allows us to not remove anything from
+    the heap uh unless it's actually going
+    to be popped from the top of it. This is
+    because we could lazily mark orders as
+    canceled by basically just setting a
+    field in them called cancelled and then
+    as we run through our cues during our
+    our while loop as we check for orders to
+    potentially fill. Uh if we see that an
+    order is marked as canceled, we just go
+    ahead and skip over it. Um, so this does
+    have some uh time complexity advantages
+    in the sense that we'll never have to
+    remove anything from the middle of the
+    heap. But it also does mean that if
+    there's a lot of cancellations, we may
+    just constantly be popping nodes from
+    the heap. Uh, taking a good look at them
+    and saying, actually, you know what, we
+    no longer uh want to consider you
+    anymore now. We just have to move on.
+    So, we're going to add time complexity
+    there. And in addition uh by not
+    actively removing empty cues from our
+    heap uh we're also going to have more
+    nodes in the heap. And again like I said
+    before even though the time complexity
+    of a heap is always O of log N is going
+    to be larger because there may be some
+    empty Q's in there.
+    Okay let's go ahead and put this all
+    together. So I'm actually going to go
+    ahead and implement everything that I've
+    just spoken about so that I can
+    materialize it for you guys and it makes
+    a little bit more sense. And
+    additionally, one of the things that I
+    want to do is um kind of do the active
+    cancellation method, not the lazy one.
+    Uh so you guys can see how that would
+    work in reality. So let's go through the
+    fields of the order book itself and we
+    can go ahead and work out what we have.
+    So we have our min heap for the best ask
+    part of the order book. We've got our
+    max heap for the best bid part of the
+    order book. Uh we have a hashmap from
+    order ID to order and that's I'm going
+    to call order map. It's going to allow
+    us to cancel orders pretty easily. We
+    also have a volume map which like I said
+    before is keyed by um basically a price
+    and a side. And then we also have a Q
+    map which is basically saying find the
+    corresponding Q that's part of a heap uh
+    as keyed by price and side yet again.
+    And that's going to allow us to easily
+    remove Q's from a heap in log end time
+    as opposed to linear time. Okay. So
+    we've got our place order method. So the
+    first thing we're going to do is figure
+    out what the opposite side of the book
+    is. So, if I'm buying, the opposite book
+    would be sell. Uh, and if I'm selling,
+    the opposite side of the book would be
+    buying. I'm doing the same thing for the
+    same side of the book. And then I'm also
+    placing our new order that's going to be
+    placed in our order map. Okay. Now, this
+    is kind of the the crux of everything.
+    We're going through our while loop and
+    basically filling it as long as there's
+    volume in our order. We're saying while
+    there is order volume, while the
+    opposite book isn't empty, and while the
+    first order to be filled in the opposite
+    book, aka the one with the best price
+    for us, has volume, we're going to go
+    ahead and actually figure out the other
+    order, which is just going to be at the
+    top of the other heap. Uh, we're going
+    to figure out the trade price, which I
+    basically said is going to be the price
+    of the other order that is already in
+    the book. The volume is going to be the
+    minimum of volume between our order and
+    the one already in the book. And then we
+    can go ahead and print and basically say
+    um you know here's a trade that's
+    happening. And we're going to have to
+    adjust both our orders volume and the
+    other orders volume by subtracting the
+    amount of the trade volume. Then finally
+    the last piece of the puzzle is
+    basically saying if the other order no
+    longer has volume left, we can remove it
+    from our book. And we can do that by
+    calling the cancel method. Um I'll go
+    into the cancel method in a little bit
+    because uh we've extracted it away for
+    now. Um but it's effectively just going
+    to remove the other order from the limit
+    order book. And then finally, if we've
+    gone through our while loop, we filled
+    every single order that we can as part
+    of the one that was just placed and
+    there's still volume left to be filled,
+    you know, so I let's say I wanted 50
+    shares of Google and I was able to buy
+    45, but now there's five left. I'm going
+    to go ahead and put those five left into
+    the order book. And I'll go ahead and
+    show that helper method in a second.
+    Okay, so we've got add order to book
+    where I'm basically saying which half of
+    the book that I'm putting it in. And I'm
+    also giving myself the order node here.
+    So now all I'm going to do is say, okay,
+    if there's no price uh that uh basically
+    corresponds to what the order should be
+    going in, we have to create that price
+    Q. And once we've created that price Q
+    and it exists, we should go ahead and
+    put the order in the price queue and
+    then furthermore increment the actual
+    corresponding volume of the price and
+    side corresponding to the order. So easy
+    enough, fine. Add order to book, sure,
+    just a helper method. Um, and then now
+    we actually have cancel order because we
+    used this before. So let's go ahead and
+    do it again. All the cancel order is
+    basically saying is we look for the
+    order ID in our order map, which would
+    indicate that the node has yet to be
+    cancelled. Uh so it's probably somewhere
+    in the order book and it hasn't been
+    filled either. And basically now all
+    that we're going to do is go ahead and
+    say okay uh we're going to go in the
+    order map. Uh we are going to look at
+    our price Q that this node should be a
+    part of. We're going to remove the order
+    which we got from our hashmap. So this
+    is going to be an O of one time because
+    I'm assuming that price Q is a doubly
+    linked list. And then finally, we're
+    going to say if the price Q that this
+    order was now a part of is now empty, we
+    need to go ahead and remove that price Q
+    from the heap. This is going to be that
+    login removal. I keep writing N login,
+    but that is a typo. And then finally, we
+    can go ahead and remove the volume of
+    this order from the order map that's
+    corresponding to it. And also delete the
+    order from uh the order map as well. So
+    again, yeah, we're just subtracting the
+    volume, deleting the order from the
+    order map. Simple enough. We're
+    basically just undoing everything that
+    we did when adding an order. The last
+    piece of the puzzle is getting the
+    volume at a specific price where all
+    we're literally going to do is call
+    volume map uh because we already have
+    this, you know, kind of listed out for
+    ourselves, which is really great. So, we
+    return volume map with a given price on
+    the side and we'll get the corresponding
+    volume. And, you know, if it's not in
+    the hashmap already, we're going to
+    return zero. There's nothing in there.
+    Easy enough.
+    Okay, moving on. Let's go to extensions
+    to the problem. I know this is going for
+    a while and I really have to poop, but
+    whatever. Um, basically, let's imagine
+    that no longer do we have limit orders,
+    but now we have something called market
+    orders. Market orders are basically
+    saying, okay, we're no longer specifying
+    a specific price that we want to buy at,
+    but we're actually just specifying a
+    volume. And so, you're going to go ahead
+    and uh, you know, fill as many shares of
+    the volume as you can. And then, if
+    there are still shares remaining left
+    over, don't put any order in the order
+    book, just get rid of it. Uh, so this is
+    pretty simple. we would actually do
+    something similar to the limit order.
+    We're basically just going to continue
+    to run through the heaps as normal,
+    right? So, if I'm trying to buy and I
+    say, "Let me buy 20 shares. I don't care
+    what price they're at. I'm going to
+    start from the bottom of the sell order
+    book, aka the lowest price that people
+    are willing to sell at. And I'm just
+    going to keep filling those orders as
+    much as possible until I have gotten all
+    of my 20 shares." Okay. What is another
+    extension to the problem that I've seen?
+    I've also seen trigger orders. Trigger
+    orders are similar to limit orders, but
+    basically you set a price and then the
+    second that um the book basically
+    crosses that price, the second the
+    spread uh or there's a transaction that
+    is um basically beyond that price now
+    the trigger order is going to basically
+    place a given order uh as specified by
+    the trigger and trigger orders can even
+    trigger other trigger orders. So
+    basically all that happens is you're
+    running through your algorithm as
+    normal, but every single time an order
+    is a trade is executed, you can
+    basically have separate heaps uh that
+    correspond to basically the
+    lowest sell trigger order and the
+    highest buy trigger order. And then you
+    can basically check them that way. And
+    once a trigger order is triggered, you
+    can put it in a queue of trigger orders
+    to run through. Uh, and then you can
+    start executing all of the trigger
+    orders in a queue before you place any
+    new orders or accept any new orders to
+    be placed. Annoying, I know. Uh, if you
+    guys want me to go into more depth in
+    this in the comments, I'm happy to do
+    so, but I don't really think it's a main
+    part of the video here. All right, guys.
+    Well, well done. This was a lot. I know.
+    Um, but uh again, you know, if you're if
+    you're feeling uh particularly generous,
+    I'm feeling particularly accepting. So,
+    uh yeah. All right, guys. Well, I hope
+    you appreciated the video. Um, like I
+    said, this is a problem that, uh, I
+    don't really think there's that good of
+    like a posted solution online for this.
+    Plus, in addition, uh, it is something
+    that definitely has come up in
+    interviews that I've done in the past.
+    And so, uh, yeah, I'd recommend, um,
+    learning this one up, especially if
+    you're planning on applying to any
+    finance companies. But, uh, yeah, best
+    of luck, guys.
