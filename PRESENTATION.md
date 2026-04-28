@@ -33,4 +33,4 @@ The simulation creates 15 'traders' that are randomly selected to place an order
 
 The traders each have their own outlook on the stock based off of a uniform distribution. This turns them into either a buyer or a seller.
 
-When a trader is selected, they create an order with a random amount of shares and a price offset from the base price of the stock
+When a trader is selected, they create an order with a random amount of shares and a price offset from the base price of the stock.

@@ -1,0 +1,54 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+button {
+  margin-right: 4px;
+}
+
+input[type="range"] {
+  width: 360px;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 8px;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #999;
+  padding: 4px 6px;
+  text-align: left;
+}
+
+th {
+  background: #eee;
+}
+
+.summary {
+  margin: 14px 0;
+  line-height: 1.7;
+}
+
+#priceChart {
+  border: 1px solid #999;
+  display: block;
+  margin: 8px 0 18px;
+  max-width: 100%;
+}
+
+.book {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 800px) {
+  .book {
+    grid-template-columns: 1fr;
+  }
+}

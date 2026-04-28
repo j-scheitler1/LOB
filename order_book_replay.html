@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order Book Replay</title>
+  <link rel="stylesheet" href="order_book_replay.css">
+</head>
+<body>
+  <h1>Order Book Replay</h1>
+  <p>
+    <button id="play">Play</button>
+    <button id="prev">Prev</button>
+    <button id="next">Next</button>
+    <input id="scrubber" type="range" min="0" max="0" value="0">
+  </p>
+
+  <div class="summary">
+    Event: <strong id="eventTime"></strong><br>
+    Stock price: <strong id="stockPrice"></strong><br>
+    Best bid: <strong id="bestBid"></strong><br>
+    Best ask: <strong id="bestAsk"></strong><br>
+    Last order: <strong id="lastOrder"></strong>
+  </div>
+
+  <h2>Price Chart</h2>
+  <canvas id="priceChart" width="900" height="260"></canvas>
+
+  <div class="book">
+    <div>
+      <h2>Bids</h2>
+      <table>
+        <thead><tr><th>Price</th><th>Volume</th></tr></thead>
+        <tbody id="bids"></tbody>
+      </table>
+    </div>
+    <div>
+      <h2>Asks</h2>
+      <table>
+        <thead><tr><th>Price</th><th>Volume</th></tr></thead>
+        <tbody id="asks"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="order_book_data.js"></script>
+  <script src="order_book_replay.js"></script>
+</body>
+</html>

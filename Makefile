@@ -4,25 +4,24 @@ CXXFLAGS = -std=c++17 -Wall -Wextra
 TARGET = main
 SRCS = src/main.cpp src/book.cpp
 HEADERS = src/order.h src/limit.h src/book.h src/random.h src/trader.h
-PLOT = plot_stock_price.py
-EVENTS = simulation_events.jsonl
-CHART = stock_price.svg
+PLOT = plot_market_visuals.py
 
-.PHONY: all sim plot clean 2008
+.PHONY: all visuals package-replay clean remove
 
 all: $(TARGET)
+	./$(TARGET) 250
 
 $(TARGET): $(SRCS) $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET)
 
-sim: $(TARGET)
-	./$(TARGET) 250
+visuals:
+	python3 $(PLOT)
 
-plot:
-	python3 $(PLOT) --input $(EVENTS) --output $(CHART)
+package-replay:
+	./package_replay.sh
 
 clean:
-	rm -rf $(TARGET) $(CHART) build __pycache__
+	rm -rf $(TARGET) order_book_data.js order_book_replay_bundle.tar.gz build __pycache__
 
-2008:
-	: > $(EVENTS)
+remove:
+	: > simulation_events.jsonl

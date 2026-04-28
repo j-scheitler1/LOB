@@ -1,11 +1,41 @@
-=== Assignment 1.10 - LOB Book + Simulation ===
+# Assignment 1.10 - Limit Order Book Simulation
 
-Run from the project root:
+This project simulates a simple limit order book and a dummy market. Orders are stored by price on bid and ask sides, and orders match when buy and sell prices cross.
 
-1. `make clean` removes old build/chart files.
-2. `make` builds the C++ simulation.
-3. `make sim` processes 250 generated orders and writes `simulation_events.jsonl`.
-4. `make plot` creates `stock_price.svg` from those events.
-5. Open `stock_price.svg` to view the simulated price movement.
+## Run the Simulation
 
-What you are seeing: a map-backed limit order book with bid/ask sides. Each price level stores orders in FIFO order, and matching happens when incoming buy/sell prices cross. Use `make 2008` to clear the event file.
+1. `make clean`
+2. `make remove`
+3. `make`
+4. `make visuals`
+
+`make` builds and runs a 250-order simulation, writing `simulation_events.jsonl`.
+
+`make visuals` updates `order_book_data.js` for the replay page.
+
+Open `order_book_replay.html` to view the replay. The page shows each order event over time, including the stock price, best bid, best ask, last submitted order, and the current bid/ask book levels.
+
+## Note for the TA
+
+I noticed you cannot open the `.html` file directly in browser from Pyrite, so you can run the script that I have added to package the files needed and open them locally.
+
+After completing the four steps above:
+
+1. Run `make package-replay` to create a `tar.gz` file
+2. Copy the tarball to your local computer:
+   
+   `scp username@pyrite.cs.iastate.edu:/path/to/LOB/order_book_replay_bundle.tar.gz .`
+
+3. Extract the tarball.
+   Mac, Linux, or Windows PowerShell:
+   
+   `tar -xzf order_book_replay_bundle.tar.gz`
+
+4. Open `order_book_replay.html` in a browser.
+   Mac Or Linux:
+   
+   `open order_book_replay.html`
+
+   Windows PowerShell:
+   
+   `start order_book_replay.html`
